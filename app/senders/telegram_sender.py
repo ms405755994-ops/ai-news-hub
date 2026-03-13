@@ -1,19 +1,19 @@
-import os
+from __future__ import annotations
+
 import requests
 
 
-def send_telegram(msg):
-    token = os.getenv("TELEGRAM_TOKEN")
-    chat_id = os.getenv("TELEGRAM_CHAT_ID")
-
+def send_telegram(token: str, chat_id: str, message: str) -> None:
     if not token or not chat_id:
-        print("TELEGRAM_TOKEN or TELEGRAM_CHAT_ID not set")
+        print("TELEGRAM_TOKEN 或 TELEGRAM_CHAT_ID 未配置，跳过 Telegram 发送")
         return
 
     url = f"https://api.telegram.org/bot{token}/sendMessage"
-    data = {
+    payload = {
         "chat_id": chat_id,
-        "text": msg,
+        "text": message,
+        "disable_web_page_preview": False,
     }
 
-    requests.post(url, data=data, timeout=15)
+    resp = requests.post(url, data=payload, timeout=15)
+    resp.raise_for_status()

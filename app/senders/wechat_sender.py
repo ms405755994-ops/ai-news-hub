@@ -1,16 +1,23 @@
-import os
+from __future__ import annotations
+
 import requests
 
 
-def send_wechat(msg):
-    webhook = os.getenv("WECHAT_WEBHOOK")
+def send_wechat(webhook: str, message: str) -> None:
     if not webhook:
-        print("WECHAT_WEBHOOK not set")
+        print("WECHAT_WEBHOOK 未配置，跳过企业微信发送")
         return
 
-    data = {
+    payload = {
         "msgtype": "markdown",
-        "markdown": {"content": msg},
+        "markdown": {
+            "content": message,
+        },
     }
 
-    requests.post(webhook, json=data, timeout=15)
+    resp = requests.post(webhook, json=payload, timeout=15)
+    resp.raise_for_status()
+
+    result = resp.json()
+    if result.get("errcode") != 0:
+        raise RuntimeError(f"企业微信发送失败: {result}")
