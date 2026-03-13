@@ -1,0 +1,44 @@
+name: ai-news-schedule
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 * * * *"
+
+jobs:
+  run-news:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Create .env from secrets
+        run: |
+          cat > .env << 'EOF'
+          FRESHRSS_BASE_URL=${{ secrets.FRESHRSS_BASE_URL }}
+          FRESHRSS_USERNAME=${{ secrets.FRESHRSS_USERNAME }}
+          FRESHRSS_API_PASSWORD=${{ secrets.FRESHRSS_API_PASSWORD }}
+          OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+          OPENAI_API_BASE=${{ secrets.OPENAI_API_BASE }}
+          OPENAI_MODEL=${{ secrets.OPENAI_MODEL }}
+          TELEGRAM_TOKEN=${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}
+          WECHAT_WEBHOOK=${{ secrets.WECHAT_WEBHOOK }}
+          SQLITE_PATH=data/news.db
+          MAX_ITEMS=8
+          HOURS_BACK=24
+          EOF
+
+      - name: Run bot
+        run: python -m app.main
